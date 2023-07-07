@@ -7,6 +7,7 @@ import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
 import { handleStartGame } from "../hanlers/handleStartGame";
 import { Server as HttpServer } from "http";
 import { playerMap } from "../hanlers/handleRegistration";
+import { findExistingRoom } from "../helpers/findExistingRoom";
 const WS_PORT = 3000;
 console.log("playerMap", playerMap);
 export function startWebSocketServer(httpServer: HttpServer) {
@@ -31,13 +32,38 @@ export function startWebSocketServer(httpServer: HttpServer) {
         const username = playerMap.get(ws);
         console.log("username from wsMAP", username);
         if (username) {
-          handleCreateRoom(ws, data, username);
+          const existingRoomId = findExistingRoom();
+          if (existingRoomId) {
+            const existingRoomIdInner = JSON.stringify(existingRoomId);
+            handleCreateRoom(ws, data, username);
+            handleAddPlayerToRoom(
+              ws,
+              { indexRoom: existingRoomIdInner },
+              username
+            );
+          } else {
+            handleCreateRoom(ws, data, username);
+          }
         } else {
-          // Обработка случая, когда имя пользователя не найдено
           console.error("Username not found");
         }
-      } else if (data.type === "add_player_to_room") {
-        handleAddPlayerToRoom(ws, data);
+      } else if (data.type === "add_user_to_room") {
+        const username = playerMap.get(ws);
+        console.log("username from wsMAP", username);
+        if (username) {
+          const existingRoomId = findExistingRoom();
+          if (existingRoomId) {
+            const existingRoomIdInner = JSON.stringify(existingRoomId);
+            handleAddPlayerToRoom(
+              ws,
+              { indexRoom: existingRoomIdInner },
+              username
+            );
+          }
+        } else {
+          console.error("Username not found");
+        }
+        // handleAddPlayerToRoom(ws, data);
         //     // Handle ahandleAddPlayerToRoom(data);dd player to room request
       } else if (data.type === "create_game") {
         handleStartGame(ws, data);

@@ -8,21 +8,21 @@ import {
 } from "database/models";
 import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
 import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
-
+const db = InMemoryDB.getInstance();
 export function handleStartGame(ws: WebSocket, data: any) {
-  console.log("Datd from createroom:", data);
-  console.log("Datd ID from createroom:", data.id);
-  //   const { idGame, idPlayer } = data.data;
+  console.log("START GAME");
+  console.log("Datd ID from createroom:", data.indexRoom);
+  const idGame = data.indexRoom; // Идентификатор игры
+  // const idPlayer = data.data.idPlayer; // Идентификатор игрока
+  // const idPlayer = db.getPlayerIndexByUsername(data.room.roomUsers[1].name); // Get the index of the second player in the room
+  // const startGameResponse = {
+  //   type: "start_game",
+  //   data: {
+  //     idGame: idGame,
+  //     idPlayer: idPlayer,
+  //   },
+  //   id: 0,
+  // };
 
-  const startGameResponse = {
-    type: "start_game",
-    data: {
-      message: "Game started",
-      //   gameId: idGame,
-      //   playerId: idPlayer,
-    },
-    id: data.id,
-  };
-
-  sendWebSocketMessage(ws, JSON.stringify(startGameResponse));
+  // sendWebSocketMessage(ws, JSON.stringify(startGameResponse));
 }

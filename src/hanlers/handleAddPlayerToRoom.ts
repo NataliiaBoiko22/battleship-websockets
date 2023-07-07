@@ -1,47 +1,50 @@
 import { InMemoryDB } from "../database/database";
 import { Server as WebSocketServer, WebSocket } from "ws";
-import {
-  IRegResponse,
-  IRegRequest,
-  IPlayer,
-  IUpdateWinnersResponse,
-} from "database/models";
 import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
 import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
+import { Room } from "./Room";
+import { roomInstances } from "../database/database";
+const db = InMemoryDB.getInstance();
 
-const db = new InMemoryDB();
+export function handleAddPlayerToRoom(
+  ws: WebSocket,
+  data: any,
+  username: string
+): void {
+  console.log("ADD PLAYER TO ROOM");
+  const indexRoom = Number(data.indexRoom);
+  // console.log("indexRoom from handleAddPlayerToRoom", indexRoom);
+  const playerName = username;
+  // console.log("username from handleAddPlayerToRoom", playerName);
 
-export function handleAddPlayerToRoom(ws: WebSocket, data: any): void {
-  console.log("Data from create room:", data);
-  const innerData = JSON.parse(data);
-  console.log("innerData", innerData);
-  console.log("innerData data", innerData.data);
-
-  console.log("innerData id", innerData.id);
-  const { indexRoom } = data.data;
-  const username = data.username;
-  //   const { indexRoom } = data.data;
-  //   console.log(data.data);
-  //   console.log(data);
   const room = db.getRooms().find((r) => {
-    console.log(r.roomId);
-
-    r.roomId === innerData.id;
+    // console.log("r.roomId", r.roomId);
+    return r.roomId === indexRoom;
   });
-  console.log("room", room);
+  // console.log("room find on index", room);
+  // console.log("ROOMS::");
+  // db.getRooms();
+  const index = db.addPlayerToRoom(indexRoom, username);
+
   //   const user = JSON.parse(data.data);
   if (room) {
-    const index = db.addPlayerToRoom(indexRoom, username);
-    const createGameResponse = {
-      type: "create_game",
+    console.log("IF ROOOM");
+    const addUserToRoomData = {
+      type: "add_user_to_room",
       data: {
-        idGame: 1,
-        idPlayer: index,
+        indexRoom: index,
       },
-      id: data.id,
+      id: 0,
     };
-
-    sendWebSocketMessage(ws, JSON.stringify(createGameResponse));
-    handleUpdateRoom(ws, data);
+    if (roomInstances[indexRoom]) {
+      const roomInstance = roomInstances[indexRoom];
+      roomInstance.addUser(ws);
+    } else {
+      const roomInstance = new Room(indexRoom);
+      roomInstance.addUser(ws);
+      roomInstances[indexRoom] = roomInstance;
+    }
+    sendWebSocketMessage(ws, JSON.stringify(addUserToRoomData));
+    handleUpdateRoom(ws, {});
   }
 }

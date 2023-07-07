@@ -1,16 +1,14 @@
 import { InMemoryDB } from "../database/database";
 import { Server as WebSocketServer, WebSocket } from "ws";
 import {
-  IRegResponse,
-  IRegRequest,
-  IPlayer,
-  IUpdateWinnersResponse,
+ 
   IUpdateRoomResponse,
 } from "database/models";
 import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
 const db = InMemoryDB.getInstance();
 
 export function handleUpdateRoom(ws: WebSocket, data: any) {
+  console.log("UPDATE ROOM");
   const updatedRooms = db.updateRoom();
   const updatedRoomsInner = JSON.stringify(updatedRooms);
 

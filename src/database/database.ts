@@ -98,14 +98,15 @@ export class InMemoryDB {
     room.roomUsers.push(user);
     console.log("user from addPlayerToRoom", user);
     console.log("room", room);
-    // return index;
+    return index;
   }
 
   public getRooms(): {
     roomId: number;
     roomUsers: { name: string; index: number }[];
   }[] {
-    console.log("GETROOMS", this.rooms);
+    console.log("GETROOMS::");
+    console.dir(this.rooms, { depth: null });
     return this.rooms;
   }
 
@@ -119,13 +120,13 @@ export class InMemoryDB {
       })),
     }));
 
-    const updateData = {
-      type: "update_room",
-      data: updatedRooms,
-      id: 0,
-    };
+    // const updateData = {
+    //   type: "update_room",
+    //   data: updatedRooms,
+    //   id: 0,
+    // };
 
-    console.log("updateData", updateData);
+    // console.log("updateData", updateData);
     this.rooms = updatedRooms;
     console.log("updatedRoom", updatedRooms);
     return updatedRooms;
@@ -135,3 +136,7 @@ export class InMemoryDB {
     return this.rooms.length;
   }
 }
+
+import { Room } from "../hanlers/Room";
+
+export const roomInstances: Record<number, Room> = {};
