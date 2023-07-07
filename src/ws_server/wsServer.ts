@@ -1,18 +1,17 @@
-import { InMemoryDB } from "../database/database";
-import {
-  IRegResponse,
-  IRegRequest,
-  IPlayer,
-  IUpdateWinnersResponse,
-} from "database/models";
 import { Server as WebSocketServer, WebSocket } from "ws";
-// import { httpServer } from "http_server";
+import { handleRegistration } from "../hanlers/handleRegistration";
+import { handleUpdateWinners } from "../hanlers/handleUpdateWinners";
+import { handleCreateRoom } from "../hanlers/handleCreateRoom";
+import { handleAddPlayerToRoom } from "../hanlers/handleAddPlayerToRoom";
+import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
+import { handleStartGame } from "../hanlers/handleStartGame";
 import { Server as HttpServer } from "http";
-
-const db = new InMemoryDB();
+import { playerMap } from "../hanlers/handleRegistration";
+const WS_PORT = 3000;
+console.log("playerMap", playerMap);
 export function startWebSocketServer(httpServer: HttpServer) {
-  // const WS_PORT = 8080;
-  const wsServer = new WebSocketServer({ server: httpServer });
+  // const wsServer = new WebSocketServer({ server: httpServer });
+  const wsServer = new WebSocketServer({ port: WS_PORT });
 
   wsServer.on("connection", (ws) => {
     console.log("New WebSocket connection");
@@ -21,63 +20,35 @@ export function startWebSocketServer(httpServer: HttpServer) {
     ws.on("message", (message: string) => {
       console.log(`Received message: ${message}`);
       const data = JSON.parse(message);
-      const user = JSON.parse(data.data);
+      // const user = JSON.parse(data.data);
       console.log(`After parse: ${JSON.stringify(data)}`);
 
       if (data.type === "reg") {
-        const regRequest: IRegRequest = {
-          type: data.type,
-          data: JSON.parse(data.data),
-          id: data.id,
-        };
-        console.log(`Request data:${JSON.stringify(regRequest)}`);
-        const { name, password } = regRequest.data;
-        console.log(`Request data - data:${regRequest.data}`);
-        const player: IPlayer = {
-          name,
-          password,
-          wins: 0,
-        };
-        const index = db.registerPlayer(player);
-        console.log(`Index: ${index}`);
-        console.log(`Name : ${regRequest.data.name}`);
-
-        const innerData = {
-          name: JSON.stringify(user.name),
-          index,
-          error: false,
-          errorText: "error",
-        };
-
-        const regResponse: IRegResponse = {
-          type: "reg",
-          data: JSON.stringify(innerData),
-          id: regRequest.id,
-        };
-        console.log(`Regresponse Stringifi:${JSON.stringify(regResponse)}`);
-        const regResponseJSON = JSON.stringify(regResponse);
-        console.log(regResponseJSON);
-
-        ws.send(regResponseJSON, (error) => {
-          if (error) {
-            console.error("Error sending response:", error);
-          }
-        });
+        handleRegistration(ws, data);
       } else if (data.type === "update_winners") {
-        const winners = db.updateWinners();
-        const updateWinnersResponse: IUpdateWinnersResponse = {
-          type: "update_winners",
-          data: winners,
-          id: data.id,
-        };
-        ws.send(JSON.stringify(updateWinnersResponse));
+        handleUpdateWinners(ws, data);
+      } else if (data.type === "create_room") {
+        const username = playerMap.get(ws);
+        console.log("username from wsMAP", username);
+        if (username) {
+          handleCreateRoom(ws, data, username);
+        } else {
+          // Обработка случая, когда имя пользователя не найдено
+          console.error("Username not found");
+        }
+      } else if (data.type === "add_player_to_room") {
+        handleAddPlayerToRoom(ws, data);
+        //     // Handle ahandleAddPlayerToRoom(data);dd player to room request
+      } else if (data.type === "create_game") {
+        handleStartGame(ws, data);
+        //     // Handle ahandleAddPlayerToRoom(data);dd player to room request
+      } else if (data.type === "update_room") {
+        handleUpdateRoom(ws, data);
       }
 
+      // ws.on("close", () => {
+      //     console.log("WebSocket connection closed");
+      //   });
     });
-
-    // ws.on("close", () => {
-    //     console.log("WebSocket connection closed");
-    //   });
   });
-
 }

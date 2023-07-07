@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as http from "http";
-import { startWebSocketServer } from "ws_server/wsServer";
+import { startWebSocketServer } from "../ws_server/wsServer";
 export const httpServer = http.createServer(function (
   req: http.IncomingMessage,
   res: http.ServerResponse
@@ -22,4 +22,4 @@ export const httpServer = http.createServer(function (
     }
   );
 });
-startWebSocketServer(httpServer);
+// startWebSocketServer(httpServer);
