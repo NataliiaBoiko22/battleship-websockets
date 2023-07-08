@@ -137,6 +137,6 @@ export class InMemoryDB {
   }
 }
 
-import { Room } from "../hanlers/Room";
+import { Room } from "../handlers/Room";
 
 export const roomInstances: Record<number, Room> = {};

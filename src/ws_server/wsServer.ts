@@ -1,21 +1,23 @@
 import { Server as WebSocketServer, WebSocket } from "ws";
-import { handleRegistration } from "../hanlers/handleRegistration";
-import { handleUpdateWinners } from "../hanlers/handleUpdateWinners";
-import { handleCreateRoom } from "../hanlers/handleCreateRoom";
-import { handleAddPlayerToRoom } from "../hanlers/handleAddPlayerToRoom";
-import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
-import { handleStartGame } from "../hanlers/handleStartGame";
+import { handleRegistration } from "../handlers/handleRegistration";
+import { handleUpdateWinners } from "../handlers/handleUpdateWinners";
+import { handleCreateRoom } from "../handlers/handleCreateRoom";
+import { handleAddPlayerToRoom } from "../handlers/handleAddPlayerToRoom";
+import { handleUpdateRoom } from "../handlers/handleUpdateRoom";
+import { handleStartGame } from "../handlers/handleStartGame";
 import { Server as HttpServer } from "http";
-import { playerMap } from "../hanlers/handleRegistration";
+import { playerMap } from "../handlers/handleRegistration";
 import { findExistingRoom } from "../helpers/findExistingRoom";
 const WS_PORT = 3000;
-console.log("playerMap", playerMap);
+export const connections: WebSocket[] = [];
+// console.log("playerMap", playerMap);
 export function startWebSocketServer(httpServer: HttpServer) {
   // const wsServer = new WebSocketServer({ server: httpServer });
   const wsServer = new WebSocketServer({ port: WS_PORT });
 
   wsServer.on("connection", (ws) => {
     console.log("New WebSocket connection");
+    connections.push(ws);
     ws.on("error", console.error);
 
     ws.on("message", (message: string) => {
@@ -63,7 +65,6 @@ export function startWebSocketServer(httpServer: HttpServer) {
         } else {
           console.error("Username not found");
         }
-        // handleAddPlayerToRoom(ws, data);
         //     // Handle ahandleAddPlayerToRoom(data);dd player to room request
       } else if (data.type === "create_game") {
         handleStartGame(ws, data);
@@ -72,9 +73,13 @@ export function startWebSocketServer(httpServer: HttpServer) {
         handleUpdateRoom(ws, data);
       }
 
-      // ws.on("close", () => {
-      //     console.log("WebSocket connection closed");
-      //   });
+      ws.on("close", () => {
+        console.log("WebSocket connection closed");
+        const index = connections.indexOf(ws);
+        if (index !== -1) {
+          connections.splice(index, 1);
+        }
+      });
     });
   });
 }

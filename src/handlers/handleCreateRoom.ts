@@ -1,10 +1,11 @@
 import { InMemoryDB } from "../database/database";
 import { Server as WebSocketServer, WebSocket } from "ws";
 
-import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
-import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
+import { sendWebSocketMessage } from "./sendWSmessage";
+import { handleUpdateRoom } from "./handleUpdateRoom";
 import { Room } from "./Room";
 import { roomInstances } from "../database/database";
+import { updateRoomList } from "../helpers/updateRoomList";
 const db = InMemoryDB.getInstance();
 export function handleCreateRoom(ws: WebSocket, data: any, username: string) {
   console.log("CREATE ROOM");
@@ -25,7 +26,6 @@ export function handleCreateRoom(ws: WebSocket, data: any, username: string) {
   console.log("Add FIRST usera to SOCKET");
   roomInstance.addUser(ws);
   roomInstances[roomId] = roomInstance;
-
   sendWebSocketMessage(ws, JSON.stringify(addUserToRoomData));
-  handleUpdateRoom(ws, data);
+  updateRoomList();
 }

@@ -1,10 +1,7 @@
 import { InMemoryDB } from "../database/database";
 import { Server as WebSocketServer, WebSocket } from "ws";
-import {
- 
-  IUpdateRoomResponse,
-} from "database/models";
-import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
+import { IUpdateRoomResponse } from "database/models";
+import { sendWebSocketMessage } from "./sendWSmessage";
 const db = InMemoryDB.getInstance();
 
 export function handleUpdateRoom(ws: WebSocket, data: any) {

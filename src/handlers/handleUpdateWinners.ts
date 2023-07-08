@@ -6,7 +6,7 @@ import {
   IPlayer,
   IUpdateWinnersResponse,
 } from "database/models";
-import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
+import { sendWebSocketMessage } from "./sendWSmessage";
 const db = new InMemoryDB();
 
 export function handleUpdateWinners(ws: WebSocket, data: any) {

@@ -1,7 +1,7 @@
 import { InMemoryDB } from "../database/database";
 import { Server as WebSocketServer, WebSocket } from "ws";
-import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
-import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
+import { sendWebSocketMessage } from "./sendWSmessage";
+import { handleUpdateRoom } from "./handleUpdateRoom";
 import { Room } from "./Room";
 import { roomInstances } from "../database/database";
 const db = InMemoryDB.getInstance();

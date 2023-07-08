@@ -6,8 +6,8 @@ import {
   IPlayer,
   IUpdateWinnersResponse,
 } from "database/models";
-import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
-import { handleUpdateRoom } from "../hanlers/handleUpdateRoom";
+import { sendWebSocketMessage } from "./sendWSmessage";
+import { handleUpdateRoom } from "./handleUpdateRoom";
 const db = InMemoryDB.getInstance();
 export function handleStartGame(ws: WebSocket, data: any) {
   console.log("START GAME");

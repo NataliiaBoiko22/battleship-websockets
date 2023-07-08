@@ -1,11 +1,7 @@
 import { InMemoryDB } from "../database/database";
 import { Server as WebSocketServer, WebSocket } from "ws";
-import {
-  IRegResponse,
-  IRegRequest,
-  IPlayer,
-} from "database/models";
-import { sendWebSocketMessage } from "../hanlers/sendWSmessage";
+import { IRegResponse, IRegRequest, IPlayer } from "database/models";
+import { sendWebSocketMessage } from "./sendWSmessage";
 import { handleUpdateRoom } from "./handleUpdateRoom";
 export const playerMap = new Map<WebSocket, string>();
 
