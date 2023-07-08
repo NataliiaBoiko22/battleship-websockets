@@ -66,11 +66,13 @@ export function startWebSocketServer(httpServer: HttpServer) {
           console.error("Username not found");
         }
         //     // Handle ahandleAddPlayerToRoom(data);dd player to room request
-      } else if (data.type === "create_game") {
-        handleStartGame(ws, data);
+        // } else if (data.type === "create_game") {
+        //   handleStartGame(ws, data);
         //     // Handle ahandleAddPlayerToRoom(data);dd player to room request
       } else if (data.type === "update_room") {
         handleUpdateRoom(ws, data);
+      } else if (data.type === "add_ships") {
+        handleStartGame(ws, data);
       }
 
       ws.on("close", () => {
