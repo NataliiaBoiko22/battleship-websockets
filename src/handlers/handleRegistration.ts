@@ -6,6 +6,7 @@ import { handleUpdateRoom } from "./handleUpdateRoom";
 export const playerMap = new Map<WebSocket, string>();
 
 const db = InMemoryDB.getInstance();
+
 export function handleRegistration(ws: WebSocket, data: any) {
   console.log("data befor reg", data);
   const user = JSON.parse(data.data);
@@ -13,16 +14,20 @@ export function handleRegistration(ws: WebSocket, data: any) {
   const regRequest: IRegRequest = {
     type: data.type,
     data: JSON.parse(data.data),
-    id: data.id,
+    id: 0,
   };
   const { name, password } = regRequest.data;
+
+  const id = db.createId()
+
+
   const player: IPlayer = {
+    id,
     name,
     password,
     wins: 0,
   };
   const index = db.getIndexRegisterPlayer(player);
-
   const innerData = {
     name: JSON.stringify(user.name),
     index,

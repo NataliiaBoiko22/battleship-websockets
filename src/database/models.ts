@@ -1,8 +1,10 @@
 export interface IPlayer {
+  id: number;
   name: string;
   password: string;
   wins: number;
 }
+
 
 export interface IPlayerReg {
   name: string;

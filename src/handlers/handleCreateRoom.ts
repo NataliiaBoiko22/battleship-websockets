@@ -3,9 +3,10 @@ import { Server as WebSocketServer, WebSocket } from "ws";
 
 import { sendWebSocketMessage } from "./sendWSmessage";
 import { handleUpdateRoom } from "./handleUpdateRoom";
-import { Room } from "./Room";
+import { Room } from "../database/Room";
 import { roomInstances } from "../database/database";
 import { updateRoomList } from "../helpers/updateRoomList";
+// import { handleAttack } from "./handlerAttack";
 const db = InMemoryDB.getInstance();
 export function handleCreateRoom(ws: WebSocket, data: any, username: string) {
   console.log("CREATE ROOM");
@@ -26,6 +27,9 @@ export function handleCreateRoom(ws: WebSocket, data: any, username: string) {
   console.log("Add FIRST usera to SOCKET");
   roomInstance.addUser(ws);
   roomInstances[roomId] = roomInstance;
+  console.log("RRRroomInstance", roomInstance);
+  // handleAttack(roomInstance, data);
+  console.log('create room', JSON.stringify(addUserToRoomData));
   sendWebSocketMessage(ws, JSON.stringify(addUserToRoomData));
   updateRoomList();
 }

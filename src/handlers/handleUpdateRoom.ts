@@ -4,7 +4,7 @@ import { IUpdateRoomResponse } from "database/models";
 import { sendWebSocketMessage } from "./sendWSmessage";
 const db = InMemoryDB.getInstance();
 
-export function handleUpdateRoom(ws: WebSocket, data: any) {
+export function handleUpdateRoom(ws: WebSocket , data: any) {
   console.log("UPDATE ROOM");
   const updatedRooms = db.updateRoom();
   const updatedRoomsInner = JSON.stringify(updatedRooms);
@@ -12,11 +12,11 @@ export function handleUpdateRoom(ws: WebSocket, data: any) {
   const updateRoomResponse: IUpdateRoomResponse = {
     type: "update_room",
     data: updatedRoomsInner,
-    id: data.id,
+    id: 0,
   };
 
   console.log("updateRoomResponse", updateRoomResponse);
-  console.log("updateRoomResponseSTRINGI", JSON.stringify(updateRoomResponse));
+  // console.log("updateRoomResponseSTRINGI", JSON.stringify(updateRoomResponse));
   const updateRoomResponseJSON = JSON.stringify(updateRoomResponse);
 
   sendWebSocketMessage(ws, updateRoomResponseJSON);

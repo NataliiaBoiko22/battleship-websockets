@@ -1,7 +1,7 @@
 import { IPlayer } from "./models";
 
 export class InMemoryDB {
-  private static instance: InMemoryDB; // Статическое поле для хранения экземпляра
+  private static instance: InMemoryDB; 
 
   private players: IPlayer[];
   private rooms: {
@@ -23,19 +23,22 @@ export class InMemoryDB {
   public getPlayers(): void {
     console.log("All players form BD", this.players);
   }
+  public createId(): number {
+    const allIds = this.players.map((player) => player.id);
+    return allIds.length > 0 ? Math.max(...allIds) + 1 : 1;
+  }
+  public getById(id: number): IPlayer | undefined {
+    return this.players.find((user) => user.id === id);
+  };
   public getUserName(index: number): string {
     const player = this.players[index];
-    console.log("this.players form getUserName", this.players);
-    console.log("dddddddddd", player);
     return player ? player.name : "";
   }
 
   public addPlayer(player: IPlayer) {
     this.players.push(player);
   }
-  // public getUsername(index: string): IPlayer | undefined {
-  // return this.players.find((player) => player.name === username);
-  // }
+
   public getPlayerByUsername(username: string): IPlayer {
     const player = this.players.find((player) => player.name === username);
     if (player) {
@@ -56,8 +59,6 @@ export class InMemoryDB {
       return index;
     }
 
-    // this.players.push(player);
-    // console.log("this.players from registerPlayer", this.players);
     return this.players.length - 1;
   }
   public registerPlayer(player: IPlayer) {
@@ -77,7 +78,6 @@ export class InMemoryDB {
       roomUsers: [],
     };
     this.rooms.push(room);
-    console.log("THISROOM", room);
     return roomId;
   }
 
@@ -88,16 +88,12 @@ export class InMemoryDB {
     }
 
     const room = this.rooms[roomIndex];
-    console.log("room FromThisRoom", room);
     const index = room.roomUsers.length;
-    console.log("index from addPlayerToRoom", index);
     const user = {
       name,
       index,
     };
     room.roomUsers.push(user);
-    console.log("user from addPlayerToRoom", user);
-    console.log("room", room);
     return index;
   }
 
@@ -105,13 +101,11 @@ export class InMemoryDB {
     roomId: number;
     roomUsers: { name: string; index: number }[];
   }[] {
-    console.log("GETROOMS::");
     console.dir(this.rooms, { depth: null });
     return this.rooms;
   }
 
   public updateRoom(): any {
-    console.log("this.rooms from updateRoom", this.rooms);
     const updatedRooms = this.rooms.map((room) => ({
       roomId: room.roomId,
       roomUsers: room.roomUsers.map((user) => ({
@@ -120,15 +114,7 @@ export class InMemoryDB {
       })),
     }));
 
-    // const updateData = {
-    //   type: "update_room",
-    //   data: updatedRooms,
-    //   id: 0,
-    // };
-
-    // console.log("updateData", updateData);
     this.rooms = updatedRooms;
-    console.log("updatedRoom", updatedRooms);
     return updatedRooms;
   }
 
@@ -137,6 +123,6 @@ export class InMemoryDB {
   }
 }
 
-import { Room } from "../handlers/Room";
+import { Room } from "./Room";
 
 export const roomInstances: Record<number, Room> = {};
