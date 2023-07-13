@@ -9,8 +9,8 @@ export function handleStartGame(ws: WebSocket, data: any,  roomInstance: Room) {
   const innerData = JSON.parse(data.data);
 
   const ships = createShipsData(innerData, roomInstance);
-  roomInstance.setShipsData(ships);
-
+  roomInstance.setShipsData(innerData.indexPlayer, ships);
+  roomInstance.debugShipsData();
   const inDataStart = {
     ships: innerData.ships,
     currentPlayerIndex: innerData.indexPlayer,
@@ -23,8 +23,6 @@ export function handleStartGame(ws: WebSocket, data: any,  roomInstance: Room) {
   };
 
   sendWebSocketMessage(ws, JSON.stringify(startGameData));
-  if (roomInstance) {
-    // roomInstance.startTurn();
+
     roomInstance.switchActivePlayer();
-  }
 }

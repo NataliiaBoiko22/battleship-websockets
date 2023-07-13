@@ -6,6 +6,7 @@ import { handleAddPlayerToRoom } from "../handlers/handleAddPlayerToRoom";
 import { handleUpdateRoom } from "../handlers/handleUpdateRoom";
 import { handleStartGame } from "../handlers/handleStartGame";
 import { handleAttack } from "../handlers/handlerAttack";
+import { handleRandomAttack } from "../handlers/handleRandomAttack";
 import { Server as HttpServer } from "http";
 import { playerMap } from "../handlers/handleRegistration";
 import { findExistingRoom } from "../helpers/findExistingRoom";
@@ -72,9 +73,13 @@ export function startWebSocketServer(httpServer: HttpServer) {
       } else if (data.type === "attack") {
         const innerData = JSON.parse(data.data);
         const roomId = innerData.gameId.slice(0,1);
-        console.log(roomId);
         const roomInstance = roomInstances[roomId];
         handleAttack(ws, data, roomInstance);
+      } else if (data.type === "randomAttack") {
+        const innerData = JSON.parse(data.data);
+        const roomId = innerData.gameId.slice(0,1);
+        const roomInstance = roomInstances[roomId];
+        handleRandomAttack(ws, data, roomInstance);
       }
 
       ws.on("close", () => {
