@@ -117,13 +117,20 @@ export class Room {
 );
 
 if (hitShip) {
+  shipsData.ships.forEach((ship: any[], shipIndex: number) => {
+    ship.forEach((position: any) => {
+      if (position.x === x && position.y === y && position.state === 'alive') {
+        position.state = 'hit';
+        this.checkShipStatus(opponentId, shipIndex);
+      } 
+    });
+  });
+
   hitShipCoordinates.push({ x, y });
-  console.log('hitShipCoordinates', hitShipCoordinates);
 }
-  
     let status: string;
     if (hitShipCoordinates.length > 0) {
-      const areAllShipsDestroyed = shipsData.ships.every((ship: any[]) => ship.every((position: any) => position.state === 'hit'));
+      const areAllShipsDestroyed = shipsData.ships.every((ship: any[]) => ship.every((position: any) => position.state === 'hit'|| position.state === 'killed'));
       status = areAllShipsDestroyed ? 'killed' : 'shot';
       console.log('status', status);
       hitShipCoordinates.push({ x, y });
@@ -185,6 +192,72 @@ if (hitShip) {
 
     return attackResult;
   }
+public checkShipStatus(playerId: number, shipIndex: number): void {
+  const shipsData = this.getShipsData(playerId);
+  const ship = shipsData.ships[shipIndex];
+  const isShipDestroyed = ship.every((position: any) => position.state === 'hit');
+
+  if (isShipDestroyed) {
+    ship.forEach((position: any) => {
+      const { x, y } = position;
+      const neighboringPositions = [
+        { x: x - 1, y: y - 1 },
+        { x: x - 1, y },
+        { x: x - 1, y: y + 1 },
+        { x, y: y - 1 },
+        { x, y: y + 1 },
+        { x: x + 1, y: y - 1 },
+        { x: x + 1, y },
+        { x: x + 1, y: y + 1 },
+      ];
+
+      neighboringPositions.forEach(((pos: { x: number, y: number }) => {
+        const { x: posX, y: posY } = pos;
+        const attackResult = {
+          status: 'miss',
+          shipCoordinates: [],
+          nextPlayer: playerId,
+        };
+
+        if (
+          posX >= 0 &&
+          posX < 10 &&
+          posY >= 0 &&
+          posY < 10 &&
+          !ship.some((shipPos: any) => shipPos.x === posX && shipPos.y === posY)
+        ) {
+          // Send the attack result to the opponent
+          const opponentId = playerId === 0 ? 1 : 0;
+          this.sockets[opponentId].send(
+            JSON.stringify({
+              type: 'attack',
+              data: JSON.stringify({
+                position: { x: posX, y: posY },
+                currentPlayer: opponentId,
+                status: attackResult.status,
+              }),
+              id: 0,
+            })
+          );
+        }
+      }))
+    });
+
+    if (this.checkGameOver()) {
+      // Game over logic
+      const winPlayer = this.getWinningPlayer();
+      const finishGame = {
+        type: 'finish',
+        data: {
+          winPlayer,
+        },
+        id: 0,
+      };
+      // Broadcast the finish game message to both players
+      this.broadcastMessage(JSON.stringify(finishGame));
+    }
+  }
+}
 
 
   public checkGameOver(): boolean {
