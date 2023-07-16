@@ -8,7 +8,6 @@ export const playerMap = new Map<WebSocket, string>();
 const db = InMemoryDB.getInstance();
 
 export function handleRegistration(ws: WebSocket, data: any) {
-  console.log("data befor reg", data);
   const user = JSON.parse(data.data);
 
   const regRequest: IRegRequest = {
@@ -34,11 +33,8 @@ export function handleRegistration(ws: WebSocket, data: any) {
     sendWebSocketMessage(ws, JSON.stringify(regResponse));
     return;
   }
-  // const id = db.createId()
-
 
   const player: IPlayer = {
-    // id,
     name,
     password,
     wins: 0,
@@ -58,8 +54,6 @@ export function handleRegistration(ws: WebSocket, data: any) {
   };
   const regResponseJSON = JSON.stringify(regResponse);
   db.registerPlayer(player);
-  // console.log("player from handleRegistration", player);
-  // console.log("data.username", JSON.stringify(user.name));
   playerMap.set(ws, JSON.stringify(user.name));
   sendWebSocketMessage(ws, regResponseJSON);
   const rooms = db.getRooms();

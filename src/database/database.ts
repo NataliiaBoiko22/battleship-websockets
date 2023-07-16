@@ -2,8 +2,6 @@ import { IPlayer } from "./models";
 import { Room } from "./Room";
 
 export const roomInstances: Record<number, Room> = {};
-
-console.log('roomInstances FROM DB', roomInstances);
 export class InMemoryDB {
   private static instance: InMemoryDB; 
 
@@ -24,13 +22,6 @@ export class InMemoryDB {
     return InMemoryDB.instance;
   }
 
-  public getPlayers(): void {
-    console.log("All players form BD", this.players);
-  }
-  // public getUserName(index: number): string {
-  //   const player = this.players[index];
-  //   return player ? player.name : "";
-  // }
   public getUserName(roomId: number, index: number): string {
     const room = this.rooms.find((r) => r.roomId === roomId);
     if (room) {
@@ -72,7 +63,6 @@ export class InMemoryDB {
   }
 
   public updatePlayerWins(playerId: number | null) {
-console.log('DBupdatePlayerWins', playerId);
     if (playerId !== null) {
       const player = this.players[playerId];
       if (player) {
@@ -82,15 +72,10 @@ console.log('DBupdatePlayerWins', playerId);
   }
   
   public updateWinners(): { name: string; wins: number }[] {
-console.log('TTTTTTTTTTTTTTTTthis.players', this.players);
-   
-
       const winners = this.players
     .filter((player) => player.wins > 0)
     .map((player) => ({ name: player.name, wins: player.wins }))
     .sort((a, b) => b.wins - a.wins);
-    console.log('UUUUUUUUUUupdateWinners', winners);
-
   return winners;
   }
 
@@ -101,21 +86,16 @@ console.log('TTTTTTTTTTTTTTTTthis.players', this.players);
       roomUsers: [],
     };
     this.rooms.push(room);
-    console.log('roomId roomId', roomId);
     return roomId;
   }
 
   public addPlayerToRoom(roomId: number, name: string) {
     const roomIndex = this.rooms.findIndex((r) => r.roomId === roomId);
-    console.log('roomIndex FROM db.ADDPLAYERTOROOOOM', roomIndex);
     if (roomIndex === -1) {
       throw new Error("Room not found");
     }
-
     const room = this.rooms[roomIndex];
-    console.log('room, room FROM db.ADDPLAYERTOROOOOM', room);
     const index = room.roomUsers.length;
-    console.log('index, index FROM db.ADDPLAYERTOROOOOM', index);
     const user = {
       name,
       index,
@@ -128,7 +108,6 @@ console.log('TTTTTTTTTTTTTTTTthis.players', this.players);
     roomId: number;
     roomUsers: { name: string; index: number }[];
   }[] {
-    console.dir(this.rooms, { depth: null });
     return this.rooms;
   }
 

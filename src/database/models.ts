@@ -1,5 +1,4 @@
 export interface IPlayer {
-  // id: number;
   name: string;
   password: string;
   wins: number;
@@ -28,25 +27,6 @@ export interface IRegResponse {
   id: number;
 }
 
-// export interface IUpdateWinnersResponse {
-//   type: "update_winners";
-//   data: IPlayer[];
-//   id: number;
-// }
-
-// export interface IUpdateRoomResponse
-// {
-
-//   type: string;
-//   data: {
-//     roomId: number;
-//     roomUsers: {
-//       name: string;
-//       index: number;
-//     }[];
-//   }[];
-//   id: number;
-// }
 export interface IUpdateRoomResponse {
   type: string;
   data: string;
@@ -54,7 +34,7 @@ export interface IUpdateRoomResponse {
 }
 
 export interface IUpdateWinnersResponse {
-  type: "update_winners";
+  type: string;
   data: string;
   id: number;
 }

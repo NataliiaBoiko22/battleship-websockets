@@ -5,8 +5,6 @@ export function createShipsData(shipsData: any, roomInstance: any): any {
       ships: []
     };
   
-    // console.log('shipsData', shipsData);
-    // console.log('shipsData.indexPlayer', shipsData.indexPlayer);
     shipsData.ships.forEach((position: any) => {
       const shipPositions = [];
       if (position.direction === true) {
@@ -32,16 +30,8 @@ export function createShipsData(shipsData: any, roomInstance: any): any {
     });
   
     obj.ships = result;
-  // console.log('obj',obj);
 
-  console.log("CREATESHIPS");
-  result.forEach((ship: any) => {
-    ship.forEach((position: any) => {
-      console.dir(position);
-    });
-  });
   roomInstance.setShipsData(shipsData.indexPlayer, result)
-  // roomInstance.setShipsData(obj);
     return obj;
   }
   

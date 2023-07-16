@@ -1,9 +1,7 @@
 import WebSocket from "ws";
 import { InMemoryDB } from "../database/database";
-import { roomInstances } from "../database/database";
 import { handleFinishGame } from "../handlers/handleFinishGame";
 const db = InMemoryDB.getInstance();
-// const roomInstances: Room[] = [];
 export class Room {
   private sockets: WebSocket[];
   private roomId: number;
@@ -18,7 +16,6 @@ export class Room {
     this.activePlayerId = 0;
     this.shipsDataPlayer1 = [];
     this.shipsDataPlayer2 = [];
-
   }
 
   public getRoomId(): number {
@@ -26,10 +23,6 @@ export class Room {
   }
   public getSockets(): WebSocket[] {
     return this.sockets;
-  }
-  public debugShipsData() {
-    console.log('Ships Data Player 1:', this.shipsDataPlayer1);
-    console.log('Ships Data Player 2:', this.shipsDataPlayer2);
   }
 
   public broadcastMessage(message: string) {
@@ -41,15 +34,10 @@ export class Room {
   }
 
   public addUser(socket: WebSocket) {
-    console.log("CLASS ROOM ADD USER");
-    console.log("CLASS ROOM ADD USER this.sockets", this.sockets);
     if (this.sockets.length >= 2) {
-      console.log("Room is full. Cannot add more players.");
       return;
     }
     this.sockets.push(socket);
-
-    console.log("socket lenth", this.sockets.length);
     if (this.sockets.length === 2) {
       this.createGame();
     }
@@ -86,8 +74,6 @@ export class Room {
       data: activePlayerIndexInner,
       id: 0,
     };
-
-    console.log('I TURN TO', activePlayerIndexInner);
     this.broadcastMessage(JSON.stringify(currentPlayerTurn));
   }
 
@@ -106,33 +92,18 @@ export class Room {
     }
     return [];
   }
-  // AAAAAAAAAAATTTTTTTTTTTTTTTTTAAAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKAAAAAAAAAAAA
   public attack(playerId: number, x: number, y: number): { status: string; shipCoordinates: { x: number; y: number }[], nextPlayer: number } {
-   
     const currentPlayerSocket = this.sockets[playerId];
     const opponentId = playerId === 0 ? 1 : 0;
     const opponentSocket = this.sockets[opponentId];
     const shipsData = this.getShipsData(opponentId);
     if (!this.sockets[playerId]) {
-      // Комната не существует или указанный игрок не существует
       return { status: '', shipCoordinates: [], nextPlayer: -1 };
     }
     if (this.checkGameOver()) {
-      return { status: '', shipCoordinates: [], nextPlayer: -1 }; // Вернуть пустой объект, так как игра завершена
+      return { status: '', shipCoordinates: [], nextPlayer: -1 }; 
     }
-    const formattedData = {
-      ownerId: playerId, 
-      ships: shipsData.ships.map((shipArr: any[]) => shipArr.map((ship: any) => Object.values(ship)))
-    };
-    console.log('!!!!!!!!!!!!!DATA SHIPS in ROOM');
-    console.log(formattedData.ownerId);
-    formattedData.ships.forEach((shipArr: any[][]) => {
-      shipArr.forEach((ship: any[]) => {
-        console.log(ship);
-      });
-    }); 
     const hitShipCoordinates: { x: number; y: number }[] = []; 
-  
     const hitShip = shipsData.ships.some((ship: any[]) =>
   ship.some((position: any) => position.x === x && position.y === y && position.state === 'alive')
 );
@@ -153,22 +124,18 @@ if (hitShip) {
     if (hitShipCoordinates.length > 0) {
       const areAllShipsDestroyed = shipsData.ships.every((ship: any[]) => ship.every((position: any) => position.state === 'hit'|| position.state === 'killed'));
       status = areAllShipsDestroyed ? 'killed' : 'shot';
-      console.log('status', status);
       hitShipCoordinates.push({ x, y });
     } else {
       status = 'miss';
-      console.log('status', status);
       hitShipCoordinates.push({ x, y });
     }
 
-    // Prepare the attack result to send to the current player
     const attackResult = {
       status,
       shipCoordinates: hitShipCoordinates,
       nextPlayer: opponentId,
     };
   
-    // Send the attack result to the current player
     currentPlayerSocket.send(JSON.stringify({
       type: 'attack',
       data: JSON.stringify({
@@ -179,7 +146,6 @@ if (hitShip) {
       id: 0,
     }));
   
-    // Send the attack result to the opponent
     opponentSocket.send(JSON.stringify({
       type: 'attack',
       data: JSON.stringify({
@@ -191,7 +157,6 @@ if (hitShip) {
     }));
 
     if (status === 'miss') {
-      // this.activePlayerId = opponentId;
       this.switchActivePlayer();
     } else if (status === 'killed' || status === 'shot')  {
       const currentPlayerTurn = {
@@ -205,15 +170,12 @@ if (hitShip) {
     }
   
     if (this.checkGameOver()) {
-      // Game over logic
       const winPlayer = this.getWinningPlayer();
       handleFinishGame(this, winPlayer);
     }
-  console.log('attackResult', attackResult);
-  console.log('attackResult.shipCoordinates', attackResult.shipCoordinates);
-
     return attackResult;
   }
+
 public checkShipStatus(playerId: number, shipIndex: number): void {
   const shipsData = this.getShipsData(playerId);
   const ship = shipsData.ships[shipIndex];
@@ -265,21 +227,13 @@ public checkShipStatus(playerId: number, shipIndex: number): void {
     });
 
     if (this.checkGameOver()) {
-
-      console.log("IF CHECKGAMEOVER TRUE");
       const winningPlayer = this.getWinningPlayer();
           this.finishGame(winningPlayer);
             const winners = db.updateWinners();
-            console.log('winners FROM room. if (this.checkGameOver())', winners);
-            console.log('winners FROM room. if (this.checkGameOver())', winners[0]);
-
             this.updateWinners(winners);
     }
     }
-
   }
-
-
 
 public checkGameOver(): boolean {
   const shipsDataPlayer1 = this.getShipsData(0);
@@ -295,12 +249,9 @@ public checkGameOver(): boolean {
   return isPlayer1Defeated || isPlayer2Defeated;
 }
 
-
-  
   public getWinningPlayer(): number | null {
     const shipsDataPlayer1 = this.getShipsData(0);
     const shipsDataPlayer2 = this.getShipsData(1);
-  
     const isPlayer1Defeated =
     shipsDataPlayer1?.ships?.length > 0 &&
     shipsDataPlayer1.ships.every((ship: any[]) =>
@@ -328,7 +279,6 @@ public checkGameOver(): boolean {
       data: JSON.stringify(winners),
       id: 0,
     });
-    console.log('RRRRRRRRRupdateWinnersMessage', updateWinnersMessage );
     this.broadcastMessage(updateWinnersMessage);
   }
   
@@ -345,5 +295,4 @@ public checkGameOver(): boolean {
     }
     this.broadcastMessage(finishGameMessage);
   }
-
 }

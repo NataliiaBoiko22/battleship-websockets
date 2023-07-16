@@ -22,4 +22,3 @@ export const httpServer = http.createServer(function (
     }
   );
 });
-// startWebSocketServer(httpServer);

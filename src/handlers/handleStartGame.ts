@@ -5,12 +5,10 @@ import { createShipsData } from "../helpers/createShipsData";
 import { sendWebSocketMessage } from "./sendWSmessage";
 const db = InMemoryDB.getInstance();
 export function handleStartGame(ws: WebSocket, data: any,  roomInstance: Room) {
-  console.log("DATA IN handleStartGame", data);
   const innerData = JSON.parse(data.data);
 
   const ships = createShipsData(innerData, roomInstance);
   roomInstance.setShipsData(innerData.indexPlayer, ships);
-  roomInstance.debugShipsData();
   const inDataStart = {
     ships: innerData.ships,
     currentPlayerIndex: innerData.indexPlayer,
@@ -23,6 +21,5 @@ export function handleStartGame(ws: WebSocket, data: any,  roomInstance: Room) {
   };
 
   sendWebSocketMessage(ws, JSON.stringify(startGameData));
-
     roomInstance.switchActivePlayer();
 }
