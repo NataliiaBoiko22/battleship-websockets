@@ -27,16 +27,18 @@ export class InMemoryDB {
   public getPlayers(): void {
     console.log("All players form BD", this.players);
   }
-  public createId(): number {
-    const allIds = this.players.map((player) => player.id);
-    return allIds.length > 0 ? Math.max(...allIds) + 1 : 1;
-  }
-  public getById(id: number): IPlayer | undefined {
-    return this.players.find((user) => user.id === id);
-  };
-  public getUserName(index: number): string {
-    const player = this.players[index];
-    return player ? player.name : "";
+  // public getUserName(index: number): string {
+  //   const player = this.players[index];
+  //   return player ? player.name : "";
+  // }
+  public getUserName(roomId: number, index: number): string {
+    const room = this.rooms.find((r) => r.roomId === roomId);
+    if (room) {
+      const user = room.roomUsers[index];
+      return user ? user.name : "";
+    } else {
+      throw new Error("Room not found");
+    }
   }
 
   public addPlayer(player: IPlayer) {
@@ -145,6 +147,12 @@ console.log('TTTTTTTTTTTTTTTTthis.players', this.players);
 
   getIndexRoom(): number {
     return this.rooms.length;
+  }
+  public deleteRoom(roomId: number): void {
+    const roomIndex = this.rooms.findIndex((room) => room.roomId === roomId);
+    if (roomIndex !== -1) {
+      this.rooms.splice(roomIndex, 1);
+    }
   }
 }
 

@@ -3,6 +3,7 @@ import { InMemoryDB, roomInstances } from "../database/database";
 import { IUpdateRoomResponse } from "../database/models";
 import { sendWebSocketMessage } from "./sendWSmessage";
 import { handleUpdateWinners } from "./handleUpdateWinners";
+import { updateRoomList } from "../helpers/updateRoomList";
 const db = InMemoryDB.getInstance();
 
 export function handleFinishGame(roomInstance: Room, winningPlayer: number | null) {
@@ -22,7 +23,7 @@ export function handleFinishGame(roomInstance: Room, winningPlayer: number | nul
   //   console.log('handleUpdateWinners from handleFINISHgame');
   //   handleUpdateWinners(roomInstance.getSockets()[0], {});
   // }
-//   if (winningPlayer !== null) {
+  if (winningPlayer !== null) {
     // Удаление комнаты из roomInstances
 
     const roomId = roomInstance.getRoomId();
@@ -32,13 +33,27 @@ export function handleFinishGame(roomInstance: Room, winningPlayer: number | nul
         console.log('roomInstances 44444444', roomInstances[roomId]);
 
         console.log('ROOOM  ID', roomId );
+        if (roomId in roomInstances) {
+          delete roomInstances[roomId];
+          db.deleteRoom(roomId);
+          updateRoomList(); 
+          // ...
+        }
         delete roomInstances[roomId];
         console.log('!!!!!!!!!!!!!!roomInstances', roomInstances);
         // }
-        const emptyRoomList: {} = {};
+        
+        // const updatedRooms = Object.values(roomInstances).map((room) => ({
+        //   roomId: room.getRoomId(),
+        //   roomUsers: room.getSockets().map((socket, index) => ({
+        //     name: room.getUserName(index),
+        //     index: index,
+        //   })),
+        // }));
+        // const emptyRoomList: '' = '';
         const updateRoomResponse: IUpdateRoomResponse = {
           type: "update_room",
-          data: JSON.stringify(emptyRoomList),
+          data: JSON.stringify([]),
           id: 0,
         };
         const updateRoomResponseJSON = JSON.stringify(updateRoomResponse);
@@ -46,4 +61,5 @@ export function handleFinishGame(roomInstance: Room, winningPlayer: number | nul
           sendWebSocketMessage(socket, updateRoomResponseJSON); // Изменение №3
         });
       }
+}
 }

@@ -108,10 +108,15 @@ export class Room {
   }
   // AAAAAAAAAAATTTTTTTTTTTTTTTTTAAAAAAAAAAAAAAAAAKKKKKKKKKKKKKKKAAAAAAAAAAAA
   public attack(playerId: number, x: number, y: number): { status: string; shipCoordinates: { x: number; y: number }[], nextPlayer: number } {
+   
     const currentPlayerSocket = this.sockets[playerId];
     const opponentId = playerId === 0 ? 1 : 0;
     const opponentSocket = this.sockets[opponentId];
     const shipsData = this.getShipsData(opponentId);
+    if (!this.sockets[playerId]) {
+      // Комната не существует или указанный игрок не существует
+      return { status: '', shipCoordinates: [], nextPlayer: -1 };
+    }
     if (this.checkGameOver()) {
       return { status: '', shipCoordinates: [], nextPlayer: -1 }; // Вернуть пустой объект, так как игра завершена
     }

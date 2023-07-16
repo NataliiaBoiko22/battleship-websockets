@@ -17,12 +17,28 @@ export function handleRegistration(ws: WebSocket, data: any) {
     id: 0,
   };
   const { name, password } = regRequest.data;
+  if (name.length < 5 || password.length < 5) {
+    const errorData = {
+      name: JSON.stringify(user.name),
+      index: 0,
+      error: true,
+      errorText: "name and password should have a minimum length of 5 characters",
+    };
 
-  const id = db.createId()
+    const regResponse = {
+      type: "reg",
+      data: JSON.stringify(errorData),
+      id: 0,
+    };
+
+    sendWebSocketMessage(ws, JSON.stringify(regResponse));
+    return;
+  }
+  // const id = db.createId()
 
 
   const player: IPlayer = {
-    id,
+    // id,
     name,
     password,
     wins: 0,
