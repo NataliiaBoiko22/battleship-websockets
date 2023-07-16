@@ -1,5 +1,9 @@
 import { IPlayer } from "./models";
+import { Room } from "./Room";
 
+export const roomInstances: Record<number, Room> = {};
+
+console.log('roomInstances FROM DB', roomInstances);
 export class InMemoryDB {
   private static instance: InMemoryDB; 
 
@@ -65,10 +69,27 @@ export class InMemoryDB {
     return this.players.push(player);
   }
 
-  public updateWinners(): IPlayer[] {
-    return this.players
-      .filter((player) => player.wins > 0)
-      .sort((a, b) => b.wins - a.wins);
+  public updatePlayerWins(playerId: number | null) {
+console.log('DBupdatePlayerWins', playerId);
+    if (playerId !== null) {
+      const player = this.players[playerId];
+      if (player) {
+        player.wins++;
+      }
+    }
+  }
+  
+  public updateWinners(): { name: string; wins: number }[] {
+console.log('TTTTTTTTTTTTTTTTthis.players', this.players);
+   
+
+      const winners = this.players
+    .filter((player) => player.wins > 0)
+    .map((player) => ({ name: player.name, wins: player.wins }))
+    .sort((a, b) => b.wins - a.wins);
+    console.log('UUUUUUUUUUupdateWinners', winners);
+
+  return winners;
   }
 
   public createRoom(): number {
@@ -78,17 +99,21 @@ export class InMemoryDB {
       roomUsers: [],
     };
     this.rooms.push(room);
+    console.log('roomId roomId', roomId);
     return roomId;
   }
 
   public addPlayerToRoom(roomId: number, name: string) {
     const roomIndex = this.rooms.findIndex((r) => r.roomId === roomId);
+    console.log('roomIndex FROM db.ADDPLAYERTOROOOOM', roomIndex);
     if (roomIndex === -1) {
       throw new Error("Room not found");
     }
 
     const room = this.rooms[roomIndex];
+    console.log('room, room FROM db.ADDPLAYERTOROOOOM', room);
     const index = room.roomUsers.length;
+    console.log('index, index FROM db.ADDPLAYERTOROOOOM', index);
     const user = {
       name,
       index,
@@ -123,6 +148,4 @@ export class InMemoryDB {
   }
 }
 
-import { Room } from "./Room";
 
-export const roomInstances: Record<number, Room> = {};

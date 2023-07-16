@@ -28,11 +28,11 @@ export interface IRegResponse {
   id: number;
 }
 
-export interface IUpdateWinnersResponse {
-  type: "update_winners";
-  data: IPlayer[];
-  id: number;
-}
+// export interface IUpdateWinnersResponse {
+//   type: "update_winners";
+//   data: IPlayer[];
+//   id: number;
+// }
 
 // export interface IUpdateRoomResponse
 // {
@@ -49,6 +49,12 @@ export interface IUpdateWinnersResponse {
 // }
 export interface IUpdateRoomResponse {
   type: string;
+  data: string;
+  id: number;
+}
+
+export interface IUpdateWinnersResponse {
+  type: "update_winners";
   data: string;
   id: number;
 }

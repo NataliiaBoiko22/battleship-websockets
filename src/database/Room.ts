@@ -1,5 +1,9 @@
 import WebSocket from "ws";
-
+import { InMemoryDB } from "../database/database";
+import { roomInstances } from "../database/database";
+import { handleFinishGame } from "../handlers/handleFinishGame";
+const db = InMemoryDB.getInstance();
+// const roomInstances: Room[] = [];
 export class Room {
   private sockets: WebSocket[];
   private roomId: number;
@@ -17,6 +21,12 @@ export class Room {
 
   }
 
+  public getRoomId(): number {
+    return this.roomId;
+  }
+  public getSockets(): WebSocket[] {
+    return this.sockets;
+  }
   public debugShipsData() {
     console.log('Ships Data Player 1:', this.shipsDataPlayer1);
     console.log('Ships Data Player 2:', this.shipsDataPlayer2);
@@ -32,6 +42,11 @@ export class Room {
 
   public addUser(socket: WebSocket) {
     console.log("CLASS ROOM ADD USER");
+    console.log("CLASS ROOM ADD USER this.sockets", this.sockets);
+    if (this.sockets.length >= 2) {
+      console.log("Room is full. Cannot add more players.");
+      return;
+    }
     this.sockets.push(socket);
 
     console.log("socket lenth", this.sockets.length);
@@ -43,10 +58,8 @@ export class Room {
   private createGame() {
     const gameId = this.roomId + "_" + this.gameCounter;
     this.gameCounter++;
-    // this.shipsData = {}; 
     this.shipsDataPlayer1 = [];
     this.shipsDataPlayer2 = [];
-  // this.broadcastMessage(JSON.stringify({ type: "start_game" }));
     this.sockets.forEach((socket, index) => {
       const playerId = index;
       const inData = {
@@ -99,6 +112,9 @@ export class Room {
     const opponentId = playerId === 0 ? 1 : 0;
     const opponentSocket = this.sockets[opponentId];
     const shipsData = this.getShipsData(opponentId);
+    if (this.checkGameOver()) {
+      return { status: '', shipCoordinates: [], nextPlayer: -1 }; // Вернуть пустой объект, так как игра завершена
+    }
     const formattedData = {
       ownerId: playerId, 
       ships: shipsData.ships.map((shipArr: any[]) => shipArr.map((ship: any) => Object.values(ship)))
@@ -172,20 +188,21 @@ if (hitShip) {
     if (status === 'miss') {
       // this.activePlayerId = opponentId;
       this.switchActivePlayer();
+    } else if (status === 'killed' || status === 'shot')  {
+      const currentPlayerTurn = {
+        type: 'turn',
+        data: JSON.stringify({
+          currentPlayer: this.activePlayerId,
+        }),
+        id: 0,
+      };
+      this.broadcastMessage(JSON.stringify(currentPlayerTurn));
     }
   
     if (this.checkGameOver()) {
       // Game over logic
       const winPlayer = this.getWinningPlayer();
-      const finishGame = {
-        type: 'finish',
-        data: {
-          winPlayer,
-        },
-        id: 0,
-      };
-      // Broadcast the finish game message to both players
-      this.broadcastMessage(JSON.stringify(finishGame));
+      handleFinishGame(this, winPlayer);
     }
   console.log('attackResult', attackResult);
   console.log('attackResult.shipCoordinates', attackResult.shipCoordinates);
@@ -226,7 +243,6 @@ public checkShipStatus(playerId: number, shipIndex: number): void {
           posY < 10 &&
           !ship.some((shipPos: any) => shipPos.x === posX && shipPos.y === posY)
         ) {
-          // Send the attack result to the opponent
           const opponentId = playerId === 0 ? 1 : 0;
           this.sockets[opponentId].send(
             JSON.stringify({
@@ -244,28 +260,85 @@ public checkShipStatus(playerId: number, shipIndex: number): void {
     });
 
     if (this.checkGameOver()) {
-      // Game over logic
-      const winPlayer = this.getWinningPlayer();
-      const finishGame = {
-        type: 'finish',
-        data: {
-          winPlayer,
-        },
-        id: 0,
-      };
-      // Broadcast the finish game message to both players
-      this.broadcastMessage(JSON.stringify(finishGame));
+
+      console.log("IF CHECKGAMEOVER TRUE");
+      const winningPlayer = this.getWinningPlayer();
+          this.finishGame(winningPlayer);
+            const winners = db.updateWinners();
+            console.log('winners FROM room. if (this.checkGameOver())', winners);
+            console.log('winners FROM room. if (this.checkGameOver())', winners[0]);
+
+            this.updateWinners(winners);
     }
+    }
+
   }
+
+
+
+public checkGameOver(): boolean {
+  const shipsDataPlayer1 = this.getShipsData(0);
+  const shipsDataPlayer2 = this.getShipsData(1);
+
+  const isPlayer1Defeated = shipsDataPlayer1?.ships?.every((ship: any[]) =>
+    ship.every((position: any) => position.state === 'hit')
+  ) || false;
+  const isPlayer2Defeated = shipsDataPlayer2?.ships?.every((ship: any[]) =>
+    ship.every((position: any) => position.state === 'hit')
+  ) || false;
+
+  return isPlayer1Defeated || isPlayer2Defeated;
 }
 
 
-  public checkGameOver(): boolean {
-   
-    return false;
-  }
+  
   public getWinningPlayer(): number | null {
-   
-    return null;
+    const shipsDataPlayer1 = this.getShipsData(0);
+    const shipsDataPlayer2 = this.getShipsData(1);
+  
+    const isPlayer1Defeated =
+    shipsDataPlayer1?.ships?.length > 0 &&
+    shipsDataPlayer1.ships.every((ship: any[]) =>
+      ship.every((position: any) => position.state === 'hit')
+    );
+
+  const isPlayer2Defeated =
+    shipsDataPlayer2?.ships?.length > 0 &&
+    shipsDataPlayer2.ships.every((ship: any[]) =>
+      ship.every((position: any) => position.state === 'hit')
+    );
+  
+     if (isPlayer1Defeated) {
+      return 1; 
+    } else if (isPlayer2Defeated) {
+      return 0; 
+    } else {
+      return null; 
+    }
   }
+
+  public updateWinners(winners: { name: string; wins: number }[]) {
+    const updateWinnersMessage = JSON.stringify({
+      type: "update_winners",
+      data: JSON.stringify(winners),
+      id: 0,
+    });
+    console.log('RRRRRRRRRupdateWinnersMessage', updateWinnersMessage );
+    this.broadcastMessage(updateWinnersMessage);
+  }
+  
+  public finishGame(winningPlayer: number | null) {
+    const finishGameMessage = JSON.stringify({
+      type: "finish",
+      data: JSON.stringify({
+        winPlayer: winningPlayer !== null ? winningPlayer : null,
+      }),
+      id: 0,
+    });
+    if (winningPlayer !== null) {
+      db.updatePlayerWins(winningPlayer);
+    }
+    this.broadcastMessage(finishGameMessage);
+  }
+
 }

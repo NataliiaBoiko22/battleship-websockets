@@ -28,32 +28,44 @@ export function startWebSocketServer(httpServer: HttpServer) {
       if (data.type === "reg") {
         handleRegistration(ws, data);
       } else if (data.type === "update_winners") {
+
+        console.log("iF update_winners GROM WS");
         handleUpdateWinners(ws, data);
       } else if (data.type === "create_room") {
+        console.log("CREATE ROOM");
+
         const username = playerMap.get(ws);
+        console.log('username username', username);
         if (username) {
-          const existingRoomId = findExistingRoom();
-          if (existingRoomId) {
-            const existingRoomIdInner = JSON.stringify(existingRoomId);
+          // const existingRoomId = findExistingRoom();
+          // console.log("existingRoomId existingRoomId", existingRoomId);
+          // if (existingRoomId) {
+          //   const roomInstance = roomInstances[existingRoomId];
+          //   const existingRoomIdInner = JSON.stringify(existingRoomId);
             handleCreateRoom(ws, data, username);
-            handleAddPlayerToRoom(
-              ws,
-              { indexRoom: existingRoomIdInner },
-              username
-            );
-          } else {
-            handleCreateRoom(ws, data, username);
+            // handleAddPlayerToRoom(
+            //   // roomInstance, // Provide the 'room' argument
+            //   ws,
+            //   { indexRoom: existingRoomIdInner },
+            //   username
+            // )
+          // } else {
+          //   handleCreateRoom(ws, data, username);
           }
-        } else {
-          console.error("Username not found");
-        }
+        // } else {
+        //   console.error("Username not found");
+        // }
       } else if (data.type === "add_user_to_room") {
+        console.log('If add_user_to_room from WS');
         const username = playerMap.get(ws);
         if (username) {
           const existingRoomId = findExistingRoom();
           if (existingRoomId) {
+            console.log('existingRoomId', existingRoomId);
+            const roomInstance = roomInstances[existingRoomId];
             const existingRoomIdInner = JSON.stringify(existingRoomId);
             handleAddPlayerToRoom(
+              // roomInstance, // Provide the 'room' argument
               ws,
               { indexRoom: existingRoomIdInner },
               username

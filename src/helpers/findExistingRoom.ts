@@ -4,8 +4,10 @@ const db = InMemoryDB.getInstance();
 
 export function findExistingRoom() {
   const rooms = db.getRooms();
-  if (rooms.length > 0) {
-    return rooms[0].roomId;
+  console.log('rooms rooms from findExistingRoom helper', rooms);
+  const availableRooms = rooms.filter(room => room.roomUsers.length < 2);
+  if (availableRooms.length > 0) {
+    return availableRooms[0].roomId;
   }
   return null;
 }
