@@ -1,83 +1,77 @@
-import { InMemoryDB } from "../database/database";
-import {
-  IRegResponse,
-  IRegRequest,
-  IPlayer,
-  IUpdateWinnersResponse,
-} from "database/models";
 import { Server as WebSocketServer, WebSocket } from "ws";
-// import { httpServer } from "http_server";
+import { handleRegistration } from "../handlers/handleRegistration";
+import { handleUpdateWinners } from "../handlers/handleUpdateWinners";
+import { handleCreateRoom } from "../handlers/handleCreateRoom";
+import { handleAddPlayerToRoom } from "../handlers/handleAddPlayerToRoom";
+import { handleUpdateRoom } from "../handlers/handleUpdateRoom";
+import { handleStartGame } from "../handlers/handleStartGame";
+import { handleAttack } from "../handlers/handlerAttack";
+import { handleRandomAttack } from "../handlers/handleRandomAttack";
 import { Server as HttpServer } from "http";
-
-const db = new InMemoryDB();
+import { playerMap } from "../handlers/handleRegistration";
+import { findExistingRoom } from "../helpers/findExistingRoom";
+import { roomInstances } from "../database/database";
+const WS_PORT = 3000;
+export const connections: WebSocket[] = [];
 export function startWebSocketServer(httpServer: HttpServer) {
-  // const WS_PORT = 8080;
-  const wsServer = new WebSocketServer({ server: httpServer });
+  const wsServer = new WebSocketServer({ port: WS_PORT });
 
-  wsServer.on("connection", (ws) => {
+  wsServer.on("connection", (ws: WebSocket ) => {
     console.log("New WebSocket connection");
+    connections.push(ws);
     ws.on("error", console.error);
 
     ws.on("message", (message: string) => {
-      console.log(`Received message: ${message}`);
       const data = JSON.parse(message);
-      const user = JSON.parse(data.data);
-      console.log(`After parse: ${JSON.stringify(data)}`);
 
       if (data.type === "reg") {
-        const regRequest: IRegRequest = {
-          type: data.type,
-          data: JSON.parse(data.data),
-          id: data.id,
-        };
-        console.log(`Request data:${JSON.stringify(regRequest)}`);
-        const { name, password } = regRequest.data;
-        console.log(`Request data - data:${regRequest.data}`);
-        const player: IPlayer = {
-          name,
-          password,
-          wins: 0,
-        };
-        const index = db.registerPlayer(player);
-        console.log(`Index: ${index}`);
-        console.log(`Name : ${regRequest.data.name}`);
-
-        const innerData = {
-          name: JSON.stringify(user.name),
-          index,
-          error: false,
-          errorText: "error",
-        };
-
-        const regResponse: IRegResponse = {
-          type: "reg",
-          data: JSON.stringify(innerData),
-          id: regRequest.id,
-        };
-        console.log(`Regresponse Stringifi:${JSON.stringify(regResponse)}`);
-        const regResponseJSON = JSON.stringify(regResponse);
-        console.log(regResponseJSON);
-
-        ws.send(regResponseJSON, (error) => {
-          if (error) {
-            console.error("Error sending response:", error);
-          }
-        });
+        handleRegistration(ws, data);
       } else if (data.type === "update_winners") {
-        const winners = db.updateWinners();
-        const updateWinnersResponse: IUpdateWinnersResponse = {
-          type: "update_winners",
-          data: winners,
-          id: data.id,
-        };
-        ws.send(JSON.stringify(updateWinnersResponse));
+        handleUpdateWinners(ws, data);
+      } else if (data.type === "create_room") {
+        const username = playerMap.get(ws);
+        if (username) {
+            handleCreateRoom(ws, data, username);
+          }
+      } else if (data.type === "add_user_to_room") {
+        const username = playerMap.get(ws);
+        if (username) {
+          const existingRoomId = findExistingRoom();
+          if (existingRoomId) {
+            const existingRoomIdInner = JSON.stringify(existingRoomId);
+            handleAddPlayerToRoom(
+              ws,
+              { indexRoom: existingRoomIdInner },
+              username
+            );
+          }
+        }
+      } else if (data.type === "update_room") {
+        handleUpdateRoom(ws, data);
+      } else if (data.type === "add_ships") {
+        const innerData = JSON.parse(data.data);
+        const roomId = innerData.gameId.slice(0,1);
+        const roomInstance = roomInstances[roomId];
+        handleStartGame(ws, data, roomInstance);
+      } else if (data.type === "attack") {
+        const innerData = JSON.parse(data.data);
+        const roomId = innerData.gameId.slice(0,1);
+        const roomInstance = roomInstances[roomId];
+        handleAttack(ws, data, roomInstance);
+      } else if (data.type === "randomAttack") {
+        const innerData = JSON.parse(data.data);
+        const roomId = innerData.gameId.slice(0,1);
+        const roomInstance = roomInstances[roomId];
+        handleRandomAttack(ws, data, roomInstance);
       }
 
+      ws.on("close", () => {
+        console.log("WebSocket connection closed");
+        const index = connections.indexOf(ws);
+        if (index !== -1) {
+          connections.splice(index, 1);
+        }
+      });
     });
-
-    // ws.on("close", () => {
-    //     console.log("WebSocket connection closed");
-    //   });
   });
-
 }
