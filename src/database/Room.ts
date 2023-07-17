@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import { InMemoryDB } from "../database/database";
 import { handleFinishGame } from "../handlers/handleFinishGame";
+import { ShipPosition, ShipXY } from "./models";
 const db = InMemoryDB.getInstance();
 export class Room {
   private sockets: WebSocket[];
@@ -77,7 +78,7 @@ export class Room {
     this.broadcastMessage(JSON.stringify(currentPlayerTurn));
   }
 
-  public setShipsData(playerId: number, ships: any) {
+  public setShipsData(playerId: number, ships: ShipPosition[] = []) {
     if (playerId === 0) {
       this.shipsDataPlayer1 = ships;
     } else if (playerId === 1) {
@@ -103,14 +104,14 @@ export class Room {
     if (this.checkGameOver()) {
       return { status: '', shipCoordinates: [], nextPlayer: -1 }; 
     }
-    const hitShipCoordinates: { x: number; y: number }[] = []; 
-    const hitShip = shipsData.ships.some((ship: any[]) =>
+    const hitShipCoordinates: ShipXY[] = []; 
+    const hitShip = shipsData.ships.some((ship: ShipPosition[] = []) =>
   ship.some((position: any) => position.x === x && position.y === y && position.state === 'alive')
 );
 
 if (hitShip) {
-  shipsData.ships.forEach((ship: any[], shipIndex: number) => {
-    ship.forEach((position: any) => {
+  shipsData.ships.forEach((ship: ShipPosition[] = [], shipIndex: number) => {
+    ship.forEach((position: ShipPosition) => {
       if (position.x === x && position.y === y && position.state === 'alive') {
         position.state = 'hit';
         this.checkShipStatus(opponentId, shipIndex);
@@ -122,7 +123,7 @@ if (hitShip) {
 }
     let status: string;
     if (hitShipCoordinates.length > 0) {
-      const areAllShipsDestroyed = shipsData.ships.every((ship: any[]) => ship.every((position: any) => position.state === 'hit'|| position.state === 'killed'));
+      const areAllShipsDestroyed = shipsData.ships.every((ship: ShipPosition[] = []) => ship.every((position: any) => position.state === 'hit'|| position.state === 'killed'));
       status = areAllShipsDestroyed ? 'killed' : 'shot';
       hitShipCoordinates.push({ x, y });
     } else {
@@ -179,10 +180,10 @@ if (hitShip) {
 public checkShipStatus(playerId: number, shipIndex: number): void {
   const shipsData = this.getShipsData(playerId);
   const ship = shipsData.ships[shipIndex];
-  const isShipDestroyed = ship.every((position: any) => position.state === 'hit');
+  const isShipDestroyed = ship.every((position: ShipPosition) => position.state === 'hit');
 
   if (isShipDestroyed) {
-    ship.forEach((position: any) => {
+    ship.forEach((position:ShipXY) => {
       const { x, y } = position;
       const neighboringPositions = [
         { x: x - 1, y: y - 1 },
@@ -195,7 +196,7 @@ public checkShipStatus(playerId: number, shipIndex: number): void {
         { x: x + 1, y: y + 1 },
       ];
 
-      neighboringPositions.forEach(((pos: { x: number, y: number }) => {
+      neighboringPositions.forEach(((pos: ShipXY) => {
         const { x: posX, y: posY } = pos;
         const attackResult = {
           status: 'miss',
@@ -208,7 +209,7 @@ public checkShipStatus(playerId: number, shipIndex: number): void {
           posX < 10 &&
           posY >= 0 &&
           posY < 10 &&
-          !ship.some((shipPos: any) => shipPos.x === posX && shipPos.y === posY)
+          !ship.some((shipPos: ShipXY) => shipPos.x === posX && shipPos.y === posY)
         ) {
           const opponentId = playerId === 0 ? 1 : 0;
           this.sockets[opponentId].send(
@@ -239,11 +240,11 @@ public checkGameOver(): boolean {
   const shipsDataPlayer1 = this.getShipsData(0);
   const shipsDataPlayer2 = this.getShipsData(1);
 
-  const isPlayer1Defeated = shipsDataPlayer1?.ships?.every((ship: any[]) =>
-    ship.every((position: any) => position.state === 'hit')
+  const isPlayer1Defeated = shipsDataPlayer1?.ships?.every((ship: ShipPosition[] = []) =>
+    ship.every((position: ShipPosition) => position.state === 'hit')
   ) || false;
-  const isPlayer2Defeated = shipsDataPlayer2?.ships?.every((ship: any[]) =>
-    ship.every((position: any) => position.state === 'hit')
+  const isPlayer2Defeated = shipsDataPlayer2?.ships?.every((ship: ShipPosition[] = []) =>
+    ship.every((position: ShipPosition) => position.state === 'hit')
   ) || false;
 
   return isPlayer1Defeated || isPlayer2Defeated;
@@ -254,13 +255,13 @@ public checkGameOver(): boolean {
     const shipsDataPlayer2 = this.getShipsData(1);
     const isPlayer1Defeated =
     shipsDataPlayer1?.ships?.length > 0 &&
-    shipsDataPlayer1.ships.every((ship: any[]) =>
+    shipsDataPlayer1.ships.every((ship: ShipPosition[] = []) =>
       ship.every((position: any) => position.state === 'hit')
     );
 
   const isPlayer2Defeated =
     shipsDataPlayer2?.ships?.length > 0 &&
-    shipsDataPlayer2.ships.every((ship: any[]) =>
+    shipsDataPlayer2.ships.every((ship: ShipPosition[] = []) =>
       ship.every((position: any) => position.state === 'hit')
     );
   

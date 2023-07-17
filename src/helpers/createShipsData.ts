@@ -1,3 +1,5 @@
+import { ShipXY, ShipPosition } from "database/models";
+
 export function createShipsData(shipsData: any, roomInstance: any): any {
     const result: any = [];
     const obj = {

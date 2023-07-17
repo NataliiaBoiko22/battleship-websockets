@@ -38,3 +38,18 @@ export interface IUpdateWinnersResponse {
   data: string;
   id: number;
 }
+
+export interface ShipPosition {
+  x: number;
+  y: number;
+  state: 'alive' | 'hit' | 'killed';
+}
+
+export type ShipData = {
+  ships: ShipPosition[][];
+};
+
+export interface ShipXY {
+  x: number;
+  y: number;
+}

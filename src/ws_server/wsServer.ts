@@ -38,7 +38,6 @@ export function startWebSocketServer(httpServer: HttpServer) {
         if (username) {
           const existingRoomId = findExistingRoom();
           if (existingRoomId) {
-            const roomInstance = roomInstances[existingRoomId];
             const existingRoomIdInner = JSON.stringify(existingRoomId);
             handleAddPlayerToRoom(
               ws,
